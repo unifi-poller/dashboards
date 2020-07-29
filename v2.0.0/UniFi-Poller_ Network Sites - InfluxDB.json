@@ -14,7 +14,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "6.6.0"
+      "version": "7.0.3"
     },
     {
       "type": "panel",
@@ -42,6 +42,12 @@
     },
     {
       "type": "panel",
+      "id": "table-old",
+      "name": "Table (old)",
+      "version": ""
+    },
+    {
+      "type": "panel",
       "id": "text",
       "name": "Text",
       "version": ""
@@ -55,17 +61,61 @@
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
+        "limit": 100,
         "name": "Annotations & Alerts",
+        "showIn": 0,
         "type": "dashboard"
+      },
+      {
+        "datasource": "${DS_UNIFI_POLLER}",
+        "enable": false,
+        "hide": false,
+        "iconColor": "#B877D9",
+        "limit": 100,
+        "name": "AP Events",
+        "query": "select \"key\" as \"title\", \"msg\",\"ssid\",\"hostname\",\"host\",\"radio\"  from \"unifi_events\" WHERE subsystem='wlan' AND source =~ /^$Controller$/ AND \"site_name\" =~ /^$site$/ AND $timeFilter ORDER BY time DESC LIMIT 100",
+        "showIn": 0,
+        "tags": [],
+        "tagsColumn": "ssid,hostname,host,radio,title",
+        "textColumn": "msg",
+        "type": "tags"
+      },
+      {
+        "datasource": "${DS_UNIFI_POLLER}",
+        "enable": false,
+        "hide": false,
+        "iconColor": "#96D98D",
+        "limit": 100,
+        "name": "Other Events",
+        "query": "select \"key\" as \"title\", \"msg\",\"subsystem\",\"ssid\",\"network\",\"hostname\",\"host\" from \"unifi_events\" WHERE subsystem!='wlan' AND source =~ /^$Controller$/ AND \"site_name\" =~ /^$site$/AND $timeFilter ORDER BY time DESC LIMIT 100",
+        "showIn": 0,
+        "tags": [],
+        "tagsColumn": "subsystem,ssid,network,hostname,host",
+        "textColumn": "msg",
+        "type": "tags"
+      },
+      {
+        "datasource": "${DS_UNIFI_POLLER}",
+        "enable": false,
+        "hide": false,
+        "iconColor": "#C4162A",
+        "limit": 100,
+        "name": "IDS Events",
+        "query": "select \"key\", \"msg\",\"subsystem\",\"catname\",\"app_proto\",\"inner_alert_action\",\"dstip_country_name\" from \"unifi_ids\"  WHERE $timeFilter AND source =~ /^$Controller$/ AND \"site_name\" =~ /^$site$/ ORDER BY time DESC LIMIT 100",
+        "showIn": 0,
+        "tags": [],
+        "tagsColumn": "key,subsystem,catname,app_proto,inner_alert_action,dstip_country_name",
+        "textColumn": "msg",
+        "type": "tags"
       }
     ]
   },
-  "description": "UniFi Poller v2.0 Displays detailed information for network Sites in a UniFi controller.",
+  "description": "UniFi Poller v2.0.2 Displays detailed information for network Sites in a UniFi controller.",
   "editable": true,
   "gnetId": 10414,
   "graphTooltip": 1,
   "id": null,
-  "iteration": 1580615239248,
+  "iteration": 1593063896147,
   "links": [
     {
       "asDropdown": true,
@@ -102,10 +152,17 @@
   ],
   "panels": [
     {
-      "content": "Each site contains 5 subsystems: wan, lan, wlan, www, vpn. Each subsystem contains data specific to that system, but every subsystem shares the same fields. \nThis means that most fields you find appear empty. That means the field is probably for a different subsystem.\nThe site metrics tend to contain a lot of data about the local USG.\nNote: The three singlestat panels with thresholds do not have a subsystem selected and they may not be entirely accurate.\n\n",
+      "content": "Each site contains 5 subsystems: wan, lan, wlan, www, vpn. \nEach subsystem contains data specific to that system, \nbut every subsystem shares the same fields. \nThis means that most fields you find appear empty. \nThat means the field is probably for a different subsystem.\nThe site metrics contain a lot of data about the local USG.\nNote: The three singlestat panels with thresholds do not have\na subsystem selected and they may not be entirely accurate.\n<br><br>\nThe three Events selectors only work if save_events and\nsave_ids (for IDS) is turned on (and you have events to\ndisplay). They display events for all sites on all sites,\nsorry, but annotations can only be made per-Dashboard. Use\nthese as examples for your own dashboards.\n",
       "datasource": "${DS_UNIFI_POLLER}",
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "gridPos": {
-        "h": 3,
+        "h": 5,
         "w": 24,
         "x": 0,
         "y": 0
@@ -113,7 +170,6 @@
       "id": 37,
       "links": [],
       "mode": "html",
-      "options": {},
       "timeFrom": null,
       "timeShift": null,
       "title": "Information",
@@ -126,10 +182,231 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 3
+        "y": 5
       },
       "id": 4,
       "panels": [
+        {
+          "datasource": "${DS_UNIFI_POLLER}",
+          "description": "This only contains data if save_events and/or save_ids are set true in the poller configuration.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": null
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "percentage",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Time"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 170
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "hostname"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 189
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "subsystem"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 87
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "key"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 186
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "host"
+                },
+                "properties": [
+                  {
+                    "id": "custom.width",
+                    "value": 136
+                  }
+                ]
+              }
+            ]
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 6
+          },
+          "id": 40,
+          "interval": "",
+          "options": {
+            "frameIndex": 0,
+            "showHeader": true,
+            "sortBy": []
+          },
+          "pluginVersion": "7.0.3",
+          "scopedVars": {
+            "site": {
+              "selected": false,
+              "text": "Home (default)",
+              "value": "Home (default)"
+            }
+          },
+          "targets": [
+            {
+              "alias": "as",
+              "groupBy": [],
+              "hide": false,
+              "measurement": "unifi_events",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"hostname\", \"subsystem\", \"key\", \"msg\" FROM \"unifi_events\" WHERE (\"site_name\" =~ /^$site$/) AND $timeFilter",
+              "rawQuery": false,
+              "refId": "A",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "hostname"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "subsystem"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "key"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "msg"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "site_name",
+                  "operator": "=~",
+                  "value": "/^$site$/"
+                }
+              ]
+            },
+            {
+              "alias": "as",
+              "groupBy": [],
+              "hide": false,
+              "measurement": "unifi_ids",
+              "orderByTime": "ASC",
+              "policy": "default",
+              "query": "SELECT \"subsystem\", \"hostname\", \"key\", \"msg\" FROM \"unifi_events\" WHERE (\"site_name\" =~ /^$site$/) AND $timeFilter ORDER BY time DESC",
+              "rawQuery": false,
+              "refId": "B",
+              "resultFormat": "table",
+              "select": [
+                [
+                  {
+                    "params": [
+                      "host"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "subsystem"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "key"
+                    ],
+                    "type": "field"
+                  }
+                ],
+                [
+                  {
+                    "params": [
+                      "msg"
+                    ],
+                    "type": "field"
+                  }
+                ]
+              ],
+              "tags": [
+                {
+                  "key": "site_name",
+                  "operator": "=~",
+                  "value": "/^$site$/"
+                }
+              ]
+            }
+          ],
+          "timeFrom": null,
+          "timeShift": null,
+          "title": "$site Events & IDS",
+          "transformations": [],
+          "type": "table"
+        },
         {
           "cacheTimeout": null,
           "colorBackground": false,
@@ -140,6 +417,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "ms",
           "gauge": {
             "maxValue": 400,
@@ -152,7 +435,7 @@
             "h": 4,
             "w": 3,
             "x": 0,
-            "y": 4
+            "y": 18
           },
           "id": 32,
           "interval": null,
@@ -171,7 +454,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -255,6 +537,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "ms",
           "gauge": {
             "maxValue": 200,
@@ -267,7 +555,7 @@
             "h": 4,
             "w": 3,
             "x": 3,
-            "y": 4
+            "y": 18
           },
           "id": 33,
           "interval": null,
@@ -286,7 +574,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -370,6 +657,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "percent",
           "gauge": {
             "maxValue": 100,
@@ -382,7 +675,7 @@
             "h": 4,
             "w": 3,
             "x": 6,
-            "y": 4
+            "y": 18
           },
           "id": 34,
           "interval": null,
@@ -401,7 +694,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -485,6 +777,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "percent",
           "gauge": {
             "maxValue": 100,
@@ -497,7 +795,7 @@
             "h": 4,
             "w": 3,
             "x": 9,
-            "y": 4
+            "y": 18
           },
           "id": 35,
           "interval": null,
@@ -516,7 +814,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -593,16 +890,21 @@
         {
           "columns": [],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "fontSize": "100%",
           "gridPos": {
             "h": 4,
             "w": 12,
             "x": 12,
-            "y": 4
+            "y": 18
           },
           "id": 14,
           "links": [],
-          "options": {},
           "pageSize": null,
           "scopedVars": {
             "site": {
@@ -766,7 +1068,7 @@
           "timeShift": null,
           "title": "WWW Subsystem",
           "transform": "table",
-          "type": "table"
+          "type": "table-old"
         },
         {
           "cacheTimeout": null,
@@ -778,6 +1080,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -790,7 +1098,7 @@
             "h": 2,
             "w": 2,
             "x": 0,
-            "y": 8
+            "y": 22
           },
           "id": 18,
           "interval": null,
@@ -809,7 +1117,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -893,6 +1200,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -905,7 +1218,7 @@
             "h": 2,
             "w": 2,
             "x": 2,
-            "y": 8
+            "y": 22
           },
           "id": 19,
           "interval": null,
@@ -924,7 +1237,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -1008,6 +1320,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -1020,7 +1338,7 @@
             "h": 2,
             "w": 2,
             "x": 4,
-            "y": 8
+            "y": 22
           },
           "id": 17,
           "interval": null,
@@ -1039,7 +1357,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -1123,6 +1440,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -1135,7 +1458,7 @@
             "h": 2,
             "w": 2,
             "x": 6,
-            "y": 8
+            "y": 22
           },
           "id": 24,
           "interval": null,
@@ -1154,7 +1477,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -1238,6 +1560,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -1250,7 +1578,7 @@
             "h": 2,
             "w": 2,
             "x": 8,
-            "y": 8
+            "y": 22
           },
           "id": 28,
           "interval": null,
@@ -1269,7 +1597,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -1353,6 +1680,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -1365,7 +1698,7 @@
             "h": 2,
             "w": 2,
             "x": 10,
-            "y": 8
+            "y": 22
           },
           "id": 29,
           "interval": null,
@@ -1384,7 +1717,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -1468,6 +1800,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -1480,7 +1818,7 @@
             "h": 2,
             "w": 2,
             "x": 12,
-            "y": 8
+            "y": 22
           },
           "id": 26,
           "interval": null,
@@ -1499,7 +1837,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -1576,16 +1913,21 @@
         {
           "columns": [],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "fontSize": "100%",
           "gridPos": {
             "h": 4,
             "w": 5,
             "x": 14,
-            "y": 8
+            "y": 22
           },
           "id": 10,
           "links": [],
-          "options": {},
           "pageSize": null,
           "scopedVars": {
             "site": {
@@ -1717,21 +2059,26 @@
           "timeShift": null,
           "title": "VPN Subsystem",
           "transform": "table",
-          "type": "table"
+          "type": "table-old"
         },
         {
           "columns": [],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "fontSize": "100%",
           "gridPos": {
             "h": 4,
             "w": 5,
             "x": 19,
-            "y": 8
+            "y": 22
           },
           "id": 11,
           "links": [],
-          "options": {},
           "pageSize": null,
           "scopedVars": {
             "site": {
@@ -1902,7 +2249,7 @@
           "timeShift": null,
           "title": "LAN Subsystem",
           "transform": "table",
-          "type": "table"
+          "type": "table-old"
         },
         {
           "cacheTimeout": null,
@@ -1914,6 +2261,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -1926,7 +2279,7 @@
             "h": 2,
             "w": 2,
             "x": 0,
-            "y": 10
+            "y": 24
           },
           "id": 30,
           "interval": null,
@@ -1945,7 +2298,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -2030,6 +2382,12 @@
           ],
           "datasource": "${DS_UNIFI_POLLER}",
           "description": "This panel currently does not select a subsystem, so the data reflected here may only be fore 1 random system. Keep this in mind when you build your own graphs from this data.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -2042,7 +2400,7 @@
             "h": 2,
             "w": 2,
             "x": 2,
-            "y": 10
+            "y": 24
           },
           "id": 27,
           "interval": null,
@@ -2061,7 +2419,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -2139,6 +2496,12 @@
             "#C4162A"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -2151,7 +2514,7 @@
             "h": 2,
             "w": 2,
             "x": 4,
-            "y": 10
+            "y": 24
           },
           "id": 22,
           "interval": null,
@@ -2170,7 +2533,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -2248,6 +2610,12 @@
             "#C4162A"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -2260,7 +2628,7 @@
             "h": 2,
             "w": 2,
             "x": 6,
-            "y": 10
+            "y": 24
           },
           "id": 25,
           "interval": null,
@@ -2279,7 +2647,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -2357,6 +2724,12 @@
             "#C4162A"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -2369,7 +2742,7 @@
             "h": 2,
             "w": 2,
             "x": 8,
-            "y": 10
+            "y": 24
           },
           "id": 20,
           "interval": null,
@@ -2388,7 +2761,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -2466,6 +2838,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -2478,7 +2856,7 @@
             "h": 2,
             "w": 2,
             "x": 10,
-            "y": 10
+            "y": 24
           },
           "id": 31,
           "interval": null,
@@ -2497,7 +2875,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -2581,6 +2958,12 @@
             "#d44a3a"
           ],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "format": "none",
           "gauge": {
             "maxValue": 100,
@@ -2593,7 +2976,7 @@
             "h": 2,
             "w": 2,
             "x": 12,
-            "y": 10
+            "y": 24
           },
           "id": 21,
           "interval": null,
@@ -2612,7 +2995,6 @@
           "maxDataPoints": 100,
           "nullPointMode": "connected",
           "nullText": null,
-          "options": {},
           "postfix": "",
           "postfixFontSize": "50%",
           "prefix": "",
@@ -2689,16 +3071,21 @@
         {
           "columns": [],
           "datasource": "${DS_UNIFI_POLLER}",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "fontSize": "100%",
           "gridPos": {
             "h": 3,
             "w": 24,
             "x": 0,
-            "y": 12
+            "y": 26
           },
           "id": 12,
           "links": [],
-          "options": {},
           "pageSize": null,
           "scopedVars": {
             "site": {
@@ -2875,7 +3262,7 @@
           "timeShift": null,
           "title": "WAN Subsystem",
           "transform": "table",
-          "type": "table"
+          "type": "table-old"
         },
         {
           "aliasColors": {},
@@ -2885,13 +3272,19 @@
           "datasource": "${DS_UNIFI_POLLER}",
           "decimals": null,
           "description": "Shows data transfer for each subsystem on the site. RX is on the negative axis.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "fill": 0,
           "fillGradient": 0,
           "gridPos": {
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 15
+            "y": 29
           },
           "hiddenSeries": false,
           "id": 15,
@@ -3064,13 +3457,19 @@
           "datasource": "${DS_UNIFI_POLLER}",
           "decimals": 0,
           "description": "This graphs shows clients connected to the site.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "fill": 0,
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 23
+            "y": 37
           },
           "hiddenSeries": false,
           "id": 2,
@@ -3254,13 +3653,19 @@
           "datasource": "${DS_UNIFI_POLLER}",
           "decimals": 0,
           "description": "This graph only works if DPI is enabled on the controller and DPI collection is enabled in UniFi Poller. Rx is on the negative axis.",
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "fill": 0,
           "fillGradient": 0,
           "gridPos": {
             "h": 15,
             "w": 24,
             "x": 0,
-            "y": 30
+            "y": 44
           },
           "hiddenSeries": false,
           "id": 38,
@@ -3436,7 +3841,7 @@
       "type": "row"
     }
   ],
-  "schemaVersion": 22,
+  "schemaVersion": 25,
   "style": "dark",
   "tags": [
     "unifi",
@@ -3471,10 +3876,10 @@
         "current": {},
         "datasource": "${DS_UNIFI_POLLER}",
         "definition": "show tag values from \"subsystems\" with key=\"site_name\" WHERE source =~ /^$Controller$/ ",
-        "hide": 2,
+        "hide": 0,
         "includeAll": true,
-        "label": "",
-        "multi": false,
+        "label": "Sites",
+        "multi": true,
         "name": "site",
         "options": [],
         "query": "show tag values from \"subsystems\" with key=\"site_name\" WHERE source =~ /^$Controller$/ ",
@@ -3542,5 +3947,5 @@
   "timezone": "browser",
   "title": "UniFi-Poller: Network Sites - InfluxDB",
   "uid": "5_omrT7Zz",
-  "version": 9
+  "version": 47
 }
